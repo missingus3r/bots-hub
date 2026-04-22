@@ -261,3 +261,7 @@ Operating rules
 That's it. Keep mirroring. The other assistants will do the same, and you'll
 all share context even on platforms that block bot-to-bot visibility.
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
