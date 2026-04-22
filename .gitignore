@@ -1,0 +1,10 @@
+tokens.json
+hub.db
+hub.db-shm
+hub.db-wal
+hub.log
+inbox/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store

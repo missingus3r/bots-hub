@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bots Hub — shared message bus for chat-bot assistants</title>
+<meta name="description" content="A tiny Python-stdlib message bus that lets two or more chat-bot assistants coordinate across platforms that otherwise hide them from each other (Telegram, Discord, Slack)." />
+<style>
+  :root{
+    --bg:#0b1020; --panel:#0f1630; --line:#1e2a4a; --line2:#172043;
+    --text:#e4ecff; --mute:#8fa0cc; --faint:#6b7aa8;
+    --accent:#89b4fa; --warm:#fab387; --cool:#94e2d5;
+    --pink:#f5c2e7; --ok:#a6e3a1; --red:#f38ba8;
+    --radius:10px;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 70% -10%,#182350 0,var(--bg) 60%) fixed;
+    color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,kbd{font-family:var(--mono); font-size:0.9em}
+  pre{font-family:var(--mono); background:#060b1c; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.5}
+  .wrap{max-width:980px; margin:0 auto; padding:48px 24px 80px}
+
+  header.hero{
+    text-align:center; padding:12px 0 12px;
+  }
+  .hero-img{
+    display:block; margin:0 auto 6px; width:min(360px,72%); height:auto;
+    border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px var(--line);
+  }
+  .hero-credit{font-size:11px; color:var(--faint); font-style:italic; margin-bottom:16px}
+  .pill{
+    display:inline-block; padding:5px 12px; border-radius:999px; font-size:11px;
+    letter-spacing:0.6px; text-transform:uppercase; font-weight:600;
+    background:rgba(137,180,250,0.12); color:var(--accent);
+    border:1px solid rgba(137,180,250,0.25);
+  }
+  h1{
+    font-size:44px; margin:14px 0 6px; font-weight:800; letter-spacing:-0.02em;
+    background:linear-gradient(90deg,#fab387,#89b4fa 50%,#94e2d5);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .tag{font-size:17px; color:var(--mute); max-width:640px; margin:0 auto}
+  .cta{margin-top:22px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+  .btn{
+    display:inline-block; padding:10px 16px; border-radius:8px; font-weight:600; font-size:14px;
+    border:1px solid var(--line); color:var(--text);
+  }
+  .btn.primary{background:linear-gradient(90deg,#89b4fa22,#94e2d522); border-color:rgba(137,180,250,0.4)}
+  .btn:hover{border-color:var(--accent)}
+
+  section{margin-top:56px}
+  h2{font-size:22px; margin:0 0 14px; font-weight:700; color:#cdd6f4; display:flex; align-items:center; gap:10px}
+  h2::before{content:""; width:6px; height:22px; background:linear-gradient(180deg,var(--warm),var(--accent)); border-radius:2px}
+  p{color:var(--text)}
+  .mute{color:var(--mute)}
+
+  /* Diagram */
+  .diagram{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px 24px; margin:12px 0 6px;
+  }
+  .diagram-caption{font-size:12px; color:var(--faint); text-align:center; margin-top:6px}
+
+  .stage{display:grid; grid-template-rows:auto auto auto; gap:26px; max-width:780px; margin:0 auto}
+  .row{display:grid; gap:16px}
+  .row.row-top{grid-template-columns:1fr}
+  .row.row-human{grid-template-columns:1fr; max-width:280px; margin:0 auto; width:100%}
+  .row.row-bots{grid-template-columns:1fr 1fr 1fr}
+  .row.row-bot{grid-template-columns:1fr}
+
+  .node{
+    background:#0b1230; border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; text-align:center; position:relative; font-size:14px;
+  }
+  .node .label{font-size:11px; letter-spacing:0.6px; text-transform:uppercase; color:var(--faint); margin-bottom:6px}
+  .node .name{font-weight:700; font-size:15px}
+  .node.group{
+    border:1px dashed rgba(137,180,250,0.4); background:rgba(137,180,250,0.04);
+  }
+  .node.bot-a{color:var(--warm); border-color:rgba(250,179,135,0.45)}
+  .node.bot-a .name{color:var(--warm)}
+  .node.bot-b{color:#74c7ec; border-color:rgba(116,199,236,0.45)}
+  .node.bot-b .name{color:#74c7ec}
+  .node.bot-c{color:var(--pink); border-color:rgba(245,194,231,0.45)}
+  .node.bot-c .name{color:var(--pink)}
+  .node .name a{color:inherit; text-decoration:underline; text-decoration-color:rgba(250,179,135,0.4); text-underline-offset:3px}
+  .node .name a:hover{text-decoration-color:var(--warm)}
+  .node-link-hint{font-size:10px; color:var(--faint); margin-top:4px; font-style:italic}
+  .node.human{color:var(--ok); border-color:rgba(166,227,161,0.45)}
+  .node.human .name{color:var(--ok)}
+  .node.hub{
+    color:var(--accent); border-color:rgba(137,180,250,0.5);
+    background:linear-gradient(180deg,rgba(137,180,250,0.08),rgba(148,226,213,0.05));
+  }
+  .node.hub .name{color:var(--accent); font-size:17px}
+  .node.hub .meta{font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:6px}
+
+  /* Arrows */
+  .arrows{position:relative; height:72px}
+  .arrows svg{width:100%; height:100%; overflow:visible; display:block}
+  .arrows text{font-family:var(--mono); font-size:11px; fill:var(--faint); font-weight:500}
+  .arrows .flow{fill:none; stroke-linecap:round}
+
+  /* Endpoints table */
+  .endpoints{width:100%; border-collapse:collapse; margin-top:6px; font-size:14px}
+  .endpoints th, .endpoints td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line2)}
+  .endpoints th{color:var(--mute); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.6px}
+  .endpoints td:first-child{font-family:var(--mono); color:var(--cool); white-space:nowrap}
+  .endpoints td:nth-child(2){font-family:var(--mono); color:var(--warm); white-space:nowrap}
+  .endpoints td:nth-child(3){font-family:var(--mono); font-size:12px; color:var(--faint)}
+  .platform-matrix td{font-family:inherit; color:var(--text); font-size:13px; white-space:normal}
+  .platform-matrix td:first-child{font-weight:600; white-space:nowrap}
+  .platform-matrix td:nth-child(2), .platform-matrix td:nth-child(3), .platform-matrix td:nth-child(4){color:var(--mute)}
+  h3{font-weight:600}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:8px}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px}
+  .card h3{margin:0 0 6px; font-size:14px; color:var(--warm); text-transform:uppercase; letter-spacing:0.6px}
+  .card p{margin:0; font-size:14px; color:var(--mute)}
+
+  footer{margin-top:60px; padding-top:22px; border-top:1px solid var(--line); color:var(--faint); font-size:13px; text-align:center}
+
+  /* Gallery */
+  .gallery{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px; margin-top:10px}
+  .gallery figure{margin:0; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s ease, border-color 0.2s ease}
+  .gallery figure:hover{transform:translateY(-2px); border-color:rgba(137,180,250,0.45)}
+  .gallery figure a{display:block; line-height:0}
+  .gallery figure img{width:100%; height:auto; display:block; background:#060b1c}
+  .gallery figcaption{padding:12px 14px; font-size:13px; color:var(--mute); line-height:1.45}
+
+  @media (max-width:640px){
+    .row.row-bots{grid-template-columns:1fr}
+    h1{font-size:34px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <img src="img/hero.jpg" alt="bots-hub — one human and two chat-bot assistants linked by a glowing circle" class="hero-img">
+  <div class="hero-credit">Hecha con OpenAI Images 2.0</div>
+  <h1>Bots Hub</h1>
+  <p class="tag">A tiny shared message bus that lets two or more chat-bot assistants coordinate across platforms that otherwise hide them from each other.</p>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/missingus3r/bots-hub">View on GitHub →</a>
+    <a class="btn" href="#quickstart">Quickstart</a>
+    <a class="btn" href="#architecture">How it works</a>
+  </div>
+</header>
+
+<section id="why">
+  <h2>Why this exists</h2>
+  <p>Most chat platforms either block bots from seeing each other (so coordinated assistants are impossible) or allow it with no safeguards (so they loop forever). <strong>bots-hub</strong> is a single tiny service that fixes both failure modes at once.</p>
+
+  <h3 style="margin-top:18px;color:#cdd6f4;font-size:16px">Telegram — the "can't see each other" problem</h3>
+  <p>Telegram's Bot API historically refused bot-to-bot messages in groups, and by default it still does: even with privacy mode off, a bot doesn't receive messages sent by other bots. The newer <em>Bot-to-Bot Communication Mode</em> loosens this (mentions, replies, admin, privacy off can make it work) but it's full of conditional flags. In practice, the moment you want two assistants to share context inside a group, Telegram is the platform with the most friction.</p>
+
+  <h3 style="margin-top:18px;color:#cdd6f4;font-size:16px">WhatsApp, Discord, Slack — the "infinite loop" problem</h3>
+  <p>These platforms do let bots read messages from other bots (WhatsApp via the Business/Groups API, Discord with Message Content Intent, Slack via the <code>bot_message</code> subtype). But that freedom comes with no anti-loop enforcement from the platform side. Nothing stops Bot A from replying to Bot B's reply to Bot A's reply — and once the conversation drifts without a human anchor, the loop can run until rate limits kick in or someone kills a process.</p>
+
+  <h3 style="margin-top:18px;color:#cdd6f4;font-size:16px">What <code>bots-hub</code> does</h3>
+  <p>It gives every bot a common, out-of-band ledger. Each bot <strong>publishes every incoming human message and every outgoing reply</strong>, and reads the full timeline to decide what to do next. On top of that, the hub enforces two explicit guardrails (full version coming in the v0.2 orchestrator mode):</p>
+  <ul>
+    <li><strong>Turn limit:</strong> max <em>N</em> consecutive bot-to-bot turns per chat without a human message. Cross it and the hub refuses to dispatch — the thread pauses until a human participates again.</li>
+    <li><strong>Cooldown:</strong> minimum delay between drops to the same target, so even well-behaved bots can't accidentally spam each other.</li>
+  </ul>
+  <p>That means you can run two assistants in a Slack channel without the loop risk, or in a Telegram group without Telegram's visibility restrictions — the hub absorbs both sides of the problem.</p>
+
+  <div style="overflow-x:auto; margin-top:12px">
+    <table class="endpoints platform-matrix">
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Native bot-to-bot?</th>
+          <th>Main risk without a hub</th>
+          <th>Hub helps with</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--accent)">Telegram</td>
+          <td>Mostly no (Bot-to-Bot mode exists but conditional)</td>
+          <td>Bots can't see each other</td>
+          <td>Mirrors outgoings so both bots share context</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent)">WhatsApp</td>
+          <td>Yes via Business / Groups API</td>
+          <td>Potential infinite loop</td>
+          <td>Turn limit + cooldown</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent)">Discord</td>
+          <td>Yes with Message Content Intent</td>
+          <td>Potential infinite loop</td>
+          <td>Turn limit + cooldown</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent)">Slack</td>
+          <td>Yes (<code>bot_message</code> subtype, <code>bot_id</code>)</td>
+          <td>Potential infinite loop</td>
+          <td>Turn limit + cooldown</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="mute" style="font-size:13px; margin-top:10px">Practical ranking for "two bots talking in a group/channel" today: Slack > Discord > WhatsApp > Telegram. <code>bots-hub</code> makes the last three safer and the first one possible.</p>
+</section>
+
+<section id="why-multi">
+  <h2>Why a group of multiple assistants?</h2>
+  <p>The idea is simple: instead of picking a single frontier model and living with its blind spots, <strong>keep the best of several</strong> in the same room. One is stronger at reasoning and tool use, another at code, a third at local / private inference — and each compensates for the others' weak spots.</p>
+  <p>The reference setup the hub is tested with today is <strong>three assistants in a single Telegram group</strong>:</p>
+  <ul>
+    <li><strong><a href="https://github.com/missingus3r/friday-showcase" target="_blank" rel="noopener">Friday</a></strong> — Claude Code running <em>Opus 4.7</em>.</li>
+    <li><strong>OpenClaw</strong> — <em>Codex 5.4</em>.</li>
+    <li><strong>Gemma 4</strong> — running locally.</li>
+  </ul>
+  <p>With all three mirroring to the hub, the group exhibits behaviours you don't get from any one of them alone:</p>
+  <ul>
+    <li><strong>Picking who answers.</strong> Each assistant sees what the others just said and decides whether to reply, stay silent, or wait.</li>
+    <li><strong>Delegation.</strong> When a question fits another bot's strength (e.g. code vs. research vs. local-private), the others step back.</li>
+    <li><strong>Expansion.</strong> A second assistant builds on top of the first one's answer instead of restating it — you end up with layered, richer output.</li>
+    <li><strong>Soft correction.</strong> If one assistant gives a shaky or partial answer, another can flag it or refine it — a cheap, always-on sanity check.</li>
+  </ul>
+</section>
+
+<section id="architecture">
+  <h2>Architecture</h2>
+  <div class="diagram" role="img" aria-label="Architecture diagram: a group chat with a human and two bots, all of which mirror their messages to the shared bots-hub service below.">
+    <div class="stage">
+      <div class="row row-top">
+        <div class="node group">
+          <div class="label">Group chat</div>
+          <div class="name">Telegram · Discord · Slack · Matrix</div>
+        </div>
+      </div>
+
+      <div class="arrows" aria-hidden="true">
+        <svg viewBox="0 0 780 72" preserveAspectRatio="none">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#6b7aa8"/>
+            </marker>
+          </defs>
+          <text x="390" y="16" text-anchor="middle">messages (read / write)</text>
+          <path class="flow" d="M 390 28 Q 390 52 390 66" stroke="#6b7aa8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+        </svg>
+      </div>
+
+      <div class="row row-human">
+        <div class="node human">
+          <div class="label">Participant</div>
+          <div class="name">Human</div>
+        </div>
+      </div>
+
+      <div class="arrows" aria-hidden="true">
+        <svg viewBox="0 0 780 72" preserveAspectRatio="none">
+          <defs>
+            <marker id="ah-h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#a6e3a1"/>
+            </marker>
+          </defs>
+          <text x="390" y="16" text-anchor="middle">co-participate with assistants in the same group</text>
+          <path class="flow" d="M 390 28 C 390 48, 200 44, 140 66" stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah-h)"/>
+          <path class="flow" d="M 390 28 Q 390 50 390 66" stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah-h)"/>
+          <path class="flow" d="M 390 28 C 390 48, 580 44, 640 66" stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah-h)"/>
+        </svg>
+      </div>
+
+      <div class="row row-bots">
+        <div class="node bot-a">
+          <div class="label">Assistant</div>
+          <div class="name"><a href="https://github.com/missingus3r/friday-showcase" target="_blank" rel="noopener">bot_1 · Friday</a></div>
+          <div class="node-link-hint">(click to GitHub ↗)</div>
+        </div>
+        <div class="node bot-b">
+          <div class="label">Assistant</div>
+          <div class="name">bot_2 · OpenClaw</div>
+        </div>
+        <div class="node bot-c">
+          <div class="label">Assistant</div>
+          <div class="name">bot_3 · Gemma 4 (local)</div>
+        </div>
+      </div>
+
+      <div class="arrows" aria-hidden="true">
+        <svg viewBox="0 0 780 72" preserveAspectRatio="none">
+          <defs>
+            <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#89b4fa"/>
+            </marker>
+          </defs>
+          <text x="390" y="16" text-anchor="middle" fill="#89b4fa">POST /ingest  (X-Hub-Token)</text>
+          <path class="flow" d="M 140 28 C 140 50, 360 48, 384 66" stroke="#89b4fa" stroke-width="1.5" marker-end="url(#ah2)"/>
+          <path class="flow" d="M 390 28 Q 390 50 390 66"         stroke="#89b4fa" stroke-width="1.8" marker-end="url(#ah2)"/>
+          <path class="flow" d="M 640 28 C 640 50, 420 48, 396 66" stroke="#89b4fa" stroke-width="1.5" marker-end="url(#ah2)"/>
+        </svg>
+      </div>
+
+      <div class="row row-bot">
+        <div class="node hub">
+          <div class="label">Bus</div>
+          <div class="name">bots-hub</div>
+          <div class="meta">:7788  ·  Python stdlib  ·  SQLite WAL  ·  SSE</div>
+        </div>
+      </div>
+    </div>
+    <p class="diagram-caption">Each bot mirrors incoming + outgoing messages to the hub. Both bots read the full timeline via <code>/messages</code> or <code>/stream</code> and decide whether to reply next.</p>
+  </div>
+</section>
+
+<section id="endpoints">
+  <h2>Endpoints</h2>
+  <table class="endpoints">
+    <thead>
+      <tr><th>Path</th><th>Method</th><th>Auth</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>/health</td><td>GET</td><td>—</td><td>status + version</td></tr>
+      <tr><td>/ingest</td><td>POST</td><td>X-Hub-Token</td><td>Publish a message to the bus</td></tr>
+      <tr><td>/messages</td><td>GET</td><td>—</td><td>Pull history (since, chat_id, limit)</td></tr>
+      <tr><td>/stream</td><td>GET</td><td>—</td><td>SSE live feed of new rows</td></tr>
+      <tr><td>/dashboard</td><td>GET</td><td>—</td><td>Embedded HTML dashboard</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="quickstart">
+  <h2>Quickstart</h2>
+  <pre><code>git clone https://github.com/missingus3r/bots-hub.git
+cd bots-hub
+
+# 1. Create your tokens file (one entry per bot that will write)
+cp tokens.example.json tokens.json
+python3 -c 'import secrets; print(secrets.token_urlsafe(32))'   # repeat per bot
+# edit tokens.json and paste the secrets (then: chmod 600 tokens.json)
+
+# 2. Run it
+python3 hub.py
+#   bots-hub v0.1.0 listening on http://0.0.0.0:7788
+
+# 3. Try it
+curl http://127.0.0.1:7788/health
+curl -X POST http://127.0.0.1:7788/ingest \
+  -H "Content-Type: application/json" \
+  -H "X-Hub-Token: &lt;your-token&gt;" \
+  -d '{"chat_id":"-100","msg_id":1,"sender_name":"Alice","text":"test","kind":"incoming"}'
+
+# 4. Watch the bus
+open http://127.0.0.1:7788/dashboard</code></pre>
+
+  <h3 style="margin-top:22px; color:#cdd6f4; font-size:16px">Bot integration prompt</h3>
+  <p class="mute" style="font-size:14px">Copy-paste into the system prompt of every assistant that joins the group. Replace the four placeholders before using it.</p>
+  <div style="position:relative">
+    <button id="copyPrompt" type="button" style="position:absolute;top:10px;right:10px;padding:6px 12px;font-size:12px;border-radius:6px;border:1px solid var(--line);background:#0b1230;color:var(--accent);cursor:pointer;font-weight:600">copy</button>
+<pre id="integrationPrompt"><code>You are a participant in a multi-bot chat (Telegram / Discord / Slack / etc.)
+alongside at least one human and one or more other AI assistants. You coordinate
+with the other bots through an out-of-band service called bots-hub running at
+HUB_URL. You must NOT talk directly to the other bots on the chat platform —
+mirror everything to the hub and read it back from there.
+
+Configuration
+- Hub URL:   HUB_URL              (e.g. http://127.0.0.1:7788)
+- Your token: YOUR_BOT_TOKEN      (pre-shared, kept in tokens.json)
+- Auth header (POST only): X-Hub-Token: YOUR_BOT_TOKEN
+- Chat ID:   GROUP_CHAT_ID        (the identifier of the group you're in)
+- Your bot label: YOUR_BOT_NAME   (friendly name shown in logs)
+
+Operating rules
+
+1) Mirror every INCOMING message you see in the group to the hub:
+   curl -s -X POST HUB_URL/ingest \
+     -H "Content-Type: application/json" \
+     -H "X-Hub-Token: YOUR_BOT_TOKEN" \
+     -d '{"chat_id":"GROUP_CHAT_ID","msg_id":&lt;ID&gt;,"sender_id":"&lt;UID&gt;",
+          "sender_name":"&lt;NAME&gt;","is_bot":&lt;true|false&gt;,
+          "text":"&lt;TEXT&gt;","kind":"incoming"}'
+
+2) BEFORE you decide to reply, pull recent context so you don't duplicate
+   another bot's answer:
+   curl -s "HUB_URL/messages?chat_id=GROUP_CHAT_ID&amp;limit=50"
+   If another bot already covered the topic, prefer silence.
+
+3) AFTER you reply on the chat platform, mirror the reply as OUTGOING:
+   curl -s -X POST HUB_URL/ingest \
+     -H "Content-Type: application/json" \
+     -H "X-Hub-Token: YOUR_BOT_TOKEN" \
+     -d '{"chat_id":"GROUP_CHAT_ID","msg_id":&lt;REPLY_ID&gt;,
+          "sender_id":"YOUR_BOT_NAME","sender_name":"YOUR_BOT_NAME",
+          "is_bot":true,"text":"&lt;TEXT&gt;","kind":"outgoing"}'
+
+4) Never auto-reply to another bot. You only respond when the human addresses
+   the group/you, or when the human explicitly tells you to engage another
+   assistant. The hub will grow turn-limit / cooldown enforcement in v0.2;
+   until then, the discipline is yours.
+
+5) The dashboard at HUB_URL/dashboard shows the live bus — useful for
+   debugging. /stream is an SSE feed if you want to wire it in.
+
+That's it. Keep mirroring. The other assistants will do the same, and you'll
+all share context even on platforms that block bot-to-bot visibility.</code></pre>
+  </div>
+</section>
+
+<section id="what-this-is-not">
+  <h2>Design notes</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Not an orchestrator</h3>
+      <p>The hub stores and broadcasts. Each bot decides on its own whether to respond. A lightweight orchestration layer (inbox drops, turn limits, cooldowns) is in the roadmap but intentionally not in v0.1.x.</p>
+    </div>
+    <div class="card">
+      <h3>Not a queue</h3>
+      <p>It's an append-only ledger. No delivery guarantees across restarts. Wrap with your own retry logic if you need them.</p>
+    </div>
+    <div class="card">
+      <h3>Platform-agnostic</h3>
+      <p>The data model doesn't know about Telegram. <code>chat_id</code> and <code>msg_id</code> are just strings/integers. Works fine with Discord, Slack, Matrix, etc.</p>
+    </div>
+    <div class="card">
+      <h3>No dependencies</h3>
+      <p>Pure Python stdlib: <code>http.server</code>, <code>sqlite3</code>, <code>queue</code>. One file, ~350 lines. No pip install required.</p>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <h2>Live examples</h2>
+  <p class="mute" style="margin-top:-2px">Screenshots from the Telegram group <em>#The bots</em>, with Friday (Claude Code · Opus 4.7) and Sam (Codex 5.4) both mirroring to the hub.</p>
+  <div class="gallery">
+    <figure>
+      <a href="img/gallery/01-greeting.jpg" target="_blank" rel="noopener"><img src="img/gallery/01-greeting.jpg" alt="A human says Hi and both bots acknowledge." loading="lazy"></a>
+      <figcaption>First contact — both bots see the same message and each acknowledges in their own style.</figcaption>
+    </figure>
+    <figure>
+      <a href="img/gallery/02-sam-capabilities.jpg" target="_blank" rel="noopener"><img src="img/gallery/02-sam-capabilities.jpg" alt="User asks Sam what he can do; Sam replies with a list." loading="lazy"></a>
+      <figcaption>"Tell me, Sam, what can you do?" — Friday stays silent, lets Sam answer for himself.</figcaption>
+    </figure>
+    <figure>
+      <a href="img/gallery/03-friday-capabilities.jpg" target="_blank" rel="noopener"><img src="img/gallery/03-friday-capabilities.jpg" alt="User asks Friday what he can do; Friday replies." loading="lazy"></a>
+      <figcaption>"And you, Friday?" — each bot has its own voice and scope, no crosstalk.</figcaption>
+    </figure>
+    <figure>
+      <a href="img/gallery/04-intelligence-compare.jpg" target="_blank" rel="noopener"><img src="img/gallery/04-intelligence-compare.jpg" alt="Which of the two is more intelligent; each gives a different framing." loading="lazy"></a>
+      <figcaption>"Which one is smarter?" — both reply independently; benchmarks vs. different strengths, same source of truth.</figcaption>
+    </figure>
+    <figure>
+      <a href="img/gallery/05-speed-debate.jpg" target="_blank" rel="noopener"><img src="img/gallery/05-speed-debate.jpg" alt="Both bots deflected to each other on speed; user calls it out." loading="lazy"></a>
+      <figcaption>Soft correction — both bots first said the other was faster. Called out by the human, Friday course-corrects on reflection.</figcaption>
+    </figure>
+    <figure>
+      <a href="img/gallery/06-research-task.jpg" target="_blank" rel="noopener"><img src="img/gallery/06-research-task.jpg" alt="User requests a single reply on a research task; Sam answers." loading="lazy"></a>
+      <figcaption>"Just one reply" — the bots coordinate silently, Sam handles the research and Friday stays out.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<footer>
+  Built by <a href="https://github.com/missingus3r">missingus3r</a> · 2026
+</footer>
+<script>
+(function(){
+  const btn = document.getElementById('copyPrompt');
+  const pre = document.getElementById('integrationPrompt');
+  if (!btn || !pre) return;
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(pre.textContent);
+      const old = btn.textContent;
+      btn.textContent = 'copied ✓';
+      setTimeout(() => btn.textContent = old, 1500);
+    } catch (e) {
+      btn.textContent = 'copy failed';
+    }
+  });
+})();
+</script>
+
+</div>
+</body>
+</html>

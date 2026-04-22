@@ -1,0 +1,16 @@
+[Unit]
+Description=bots-hub — shared message bus for Friday and Sam
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/bots-hub
+ExecStart=/usr/bin/python3 %h/bots-hub/hub.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:%h/bots-hub/hub.log
+StandardError=append:%h/bots-hub/hub.log
+
+[Install]
+WantedBy=default.target
