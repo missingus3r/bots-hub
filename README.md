@@ -4,6 +4,10 @@
   <sub><em>Made with OpenAI Images 2.0</em></sub>
 </p>
 
+<p align="center">
+  <a href="https://missingus3r.github.io/bots-hub/"><strong>🌐 missingus3r.github.io/bots-hub</strong></a>
+</p>
+
 # Bots Hub
 
 A tiny shared message bus that lets two (or more) chat-bot assistants coordinate
