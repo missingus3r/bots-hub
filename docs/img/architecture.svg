@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 620" font-family="ui-sans-serif, system-ui, Segoe UI, Roboto, sans-serif">
+  <defs>
+    <marker id="arrH" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#6b7aa8"/>
+    </marker>
+    <marker id="arrHuman" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#a6e3a1"/>
+    </marker>
+    <marker id="arrHub" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#89b4fa"/>
+    </marker>
+    <linearGradient id="hubBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#89b4fa" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#94e2d5" stop-opacity="0.05"/>
+    </linearGradient>
+    <style>
+      .panel { fill: #0f1630; stroke: #1e2a4a; stroke-width: 1.2; }
+      .group-panel { fill: rgba(137,180,250,0.04); stroke: #89b4fa; stroke-dasharray: 6 4; stroke-width: 1.2; }
+      .label { fill: #6b7aa8; font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase; font-weight: 600; }
+      .name { font-size: 14px; font-weight: 700; }
+      .meta { fill: #6b7aa8; font-size: 10px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+      .arrow-text { fill: #8fa0cc; font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 500; }
+      .arrow-text.hub { fill: #89b4fa; }
+      .flow { fill: none; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="820" height="620" fill="#0b1020"/>
+
+  <!-- Group chat -->
+  <g>
+    <rect class="group-panel" x="220" y="26" width="380" height="64" rx="10"/>
+    <text class="label" x="410" y="52" text-anchor="middle">Group chat</text>
+    <text class="name" x="410" y="74" text-anchor="middle" fill="#cdd6f4">Telegram · Discord · Slack · Matrix</text>
+  </g>
+
+  <!-- Arrow group -> human -->
+  <text class="arrow-text" x="410" y="108" text-anchor="middle">messages (read / write)</text>
+  <path class="flow" d="M 410 116 Q 410 140 410 164" stroke="#6b7aa8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrH)"/>
+
+  <!-- Human -->
+  <g>
+    <rect class="panel" x="320" y="172" width="180" height="72" rx="10" stroke="rgba(166,227,161,0.45)"/>
+    <text class="label" x="410" y="196" text-anchor="middle">Participant</text>
+    <text class="name" x="410" y="222" text-anchor="middle" fill="#a6e3a1">Human</text>
+  </g>
+
+  <!-- Arrows human -> 3 bots -->
+  <text class="arrow-text" x="410" y="266" text-anchor="middle">co-participate with assistants in the same group</text>
+  <path class="flow" d="M 360 252 C 360 290, 180 288, 150 316"  stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrHuman)"/>
+  <path class="flow" d="M 410 252 Q 410 290 410 316"                stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrHuman)"/>
+  <path class="flow" d="M 460 252 C 460 290, 640 288, 670 316"  stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrHuman)"/>
+
+  <!-- Three bots -->
+  <g>
+    <rect class="panel" x="40" y="324" width="220" height="92" rx="10" stroke="rgba(250,179,135,0.45)"/>
+    <text class="label" x="150" y="348" text-anchor="middle">Assistant</text>
+    <text class="name" x="150" y="374" text-anchor="middle" fill="#fab387">bot_1 · Friday</text>
+    <text class="meta" x="150" y="394" text-anchor="middle" style="font-style:italic">(click to GitHub ↗)</text>
+    <a href="https://github.com/missingus3r/friday-showcase" target="_blank">
+      <rect x="40" y="324" width="220" height="92" rx="10" fill="transparent"/>
+    </a>
+  </g>
+  <g>
+    <rect class="panel" x="300" y="324" width="220" height="92" rx="10" stroke="rgba(116,199,236,0.45)"/>
+    <text class="label" x="410" y="348" text-anchor="middle">Assistant</text>
+    <text class="name" x="410" y="374" text-anchor="middle" fill="#74c7ec">bot_2 · OpenClaw</text>
+  </g>
+  <g>
+    <rect class="panel" x="560" y="324" width="220" height="92" rx="10" stroke="rgba(245,194,231,0.45)"/>
+    <text class="label" x="670" y="348" text-anchor="middle">Assistant</text>
+    <text class="name" x="670" y="374" text-anchor="middle" fill="#f5c2e7">bot_3 · Gemma 4 (local)</text>
+  </g>
+
+  <!-- Arrows bots -> hub -->
+  <text class="arrow-text hub" x="410" y="438" text-anchor="middle">POST /ingest  (X-Hub-Token)</text>
+  <path class="flow" d="M 150 424 C 150 468, 380 474, 400 500"  stroke="#89b4fa" stroke-width="1.5" marker-end="url(#arrHub)"/>
+  <path class="flow" d="M 410 424 Q 410 468 410 500"               stroke="#89b4fa" stroke-width="1.8" marker-end="url(#arrHub)"/>
+  <path class="flow" d="M 670 424 C 670 468, 440 474, 420 500"  stroke="#89b4fa" stroke-width="1.5" marker-end="url(#arrHub)"/>
+
+  <!-- Hub -->
+  <g>
+    <rect x="220" y="508" width="380" height="88" rx="10" fill="url(#hubBg)" stroke="#89b4fa" stroke-width="1.4" opacity="0.95"/>
+    <text class="label" x="410" y="530" text-anchor="middle">Bus</text>
+    <text class="name" x="410" y="558" text-anchor="middle" fill="#89b4fa" font-size="17">bots-hub</text>
+    <text class="meta" x="410" y="580" text-anchor="middle">:7788  ·  Python stdlib  ·  SQLite WAL  ·  SSE</text>
+  </g>
+</svg>

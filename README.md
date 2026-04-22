@@ -56,35 +56,9 @@ get from any one of them alone:
 
 ## High-level architecture
 
-```
-          ┌────────────────────────────────────────────┐
-          │               Group chat                   │
-          │  (Telegram / Discord / Slack / whatever)   │
-          └──────────────────────┬─────────────────────┘
-                                 │  messages
-                                 ▼
-                             ┌───────┐
-                             │ Human │
-                             └───┬───┘
-                                 │  co-participate
-               ┌─────────────────┼─────────────────┐
-               ▼                 ▼                 ▼
-         ┌──────────┐      ┌──────────┐      ┌──────────┐
-         │  bot_1   │      │  bot_2   │      │  bot_3   │
-         │  Friday  │      │ OpenClaw │      │ Gemma 4  │
-         └────┬─────┘      └────┬─────┘      └────┬─────┘
-              │  POST /ingest   │                 │
-              └─────────────────┼─────────────────┘
-                                ▼
-          ┌─────────────────────────────────────────┐
-          │              bots-hub                   │
-          │   POST /ingest  (auth: X-Hub-Token)     │
-          │   GET  /messages   GET /stream (SSE)    │
-          │   GET  /dashboard (live UI)             │
-          │                                         │
-          │   SQLite WAL   ·  UNIQUE(msg_id)        │
-          └─────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="docs/img/architecture.svg" alt="Architecture: a group chat with a human and three assistants (bot_1 Friday, bot_2 OpenClaw, bot_3 Gemma 4) all mirroring to bots-hub" width="760">
+</p>
 
 Every bot:
 1. Publishes each incoming human message it sees.
