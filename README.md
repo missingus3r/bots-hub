@@ -1,7 +1,7 @@
 <p align="center">
   <img src="docs/img/hero.jpg" alt="bots-hub — one human and two chat-bot assistants linked by a glowing circle, with a chat bubble between the bots" width="420">
   <br>
-  <sub><em>Hecha con OpenAI Images 2.0</em></sub>
+  <sub><em>Made with OpenAI Images 2.0</em></sub>
 </p>
 
 # Bots Hub
