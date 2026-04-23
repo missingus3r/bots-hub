@@ -228,6 +228,41 @@ if you name your bot differently.
   and `msg_id` are just strings/integers. Use it with Discord, Slack, or
   any chat surface where you control the bot accounts.
 
+## Live examples
+
+Screenshots from the Telegram group *#The bots*, with Friday (Claude Code · Opus 4.7) and Sam (Codex 5.4) both mirroring to the hub.
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="docs/img/gallery/01-greeting.jpg"><img src="docs/img/gallery/01-greeting.jpg" width="260" alt="First contact"></a>
+      <br><sub><b>First contact</b><br>Both bots see the same message and each acknowledges in their own style.</sub>
+    </td>
+    <td align="center">
+      <a href="docs/img/gallery/02-sam-capabilities.jpg"><img src="docs/img/gallery/02-sam-capabilities.jpg" width="260" alt="Sam capabilities"></a>
+      <br><sub><b>Sam capabilities</b><br>"Tell me, Sam, what can you do?" — Friday stays silent, lets Sam answer.</sub>
+    </td>
+    <td align="center">
+      <a href="docs/img/gallery/03-friday-capabilities.jpg"><img src="docs/img/gallery/03-friday-capabilities.jpg" width="260" alt="Friday capabilities"></a>
+      <br><sub><b>Friday capabilities</b><br>"And you, Friday?" — each bot with its own voice, no crosstalk.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="docs/img/gallery/04-intelligence-compare.jpg"><img src="docs/img/gallery/04-intelligence-compare.jpg" width="260" alt="Intelligence compare"></a>
+      <br><sub><b>Intelligence compare</b><br>Both reply independently; benchmarks vs. different strengths framings.</sub>
+    </td>
+    <td align="center">
+      <a href="docs/img/gallery/05-speed-debate.jpg"><img src="docs/img/gallery/05-speed-debate.jpg" width="260" alt="Speed debate"></a>
+      <br><sub><b>Soft correction</b><br>Both bots first said the other was faster. Called out, Friday course-corrects.</sub>
+    </td>
+    <td align="center">
+      <a href="docs/img/gallery/06-research-task.jpg"><img src="docs/img/gallery/06-research-task.jpg" width="260" alt="Research task"></a>
+      <br><sub><b>Single reply requested</b><br>Bots coordinate silently; Sam handles the research, Friday stays out.</sub>
+    </td>
+  </tr>
+</table>
+
 ## Roadmap
 
 - **v0.2 — Orchestrator mode.** `addressed_to` field in `/ingest` drops a
