@@ -230,7 +230,7 @@ if you name your bot differently.
 
 ## Live examples
 
-Screenshots from the Telegram group *#The bots*, with Friday (Claude Code · Opus 4.7) and Sam (Codex 5.4) both mirroring to the hub.
+Screenshots from the Telegram group *#The hub*, with Friday (Claude Code · Opus 4.7) and Sam (Codex 5.4) both mirroring to the hub.
 
 <table>
   <tr>
