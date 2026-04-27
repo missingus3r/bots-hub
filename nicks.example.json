@@ -1,0 +1,5 @@
+{
+  "_comment": "Per-bot nicks for /mentions cross-bot tag detection (v0.2+). Copy to ~/bots-hub/nicks.json. If absent, the hub falls back to {bot_name: [bot_name, '@bot_name']}.",
+  "friday": ["@Br1sbot", "Br1sbot", "Friday", "@Friday"],
+  "sam": ["@Sam", "Sam", "@M0rph3u5_bot", "M0rph3u5_bot"]
+}
