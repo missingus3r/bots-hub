@@ -24,16 +24,27 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 HOST = "0.0.0.0"
 PORT = 7788
 BASE = Path(os.path.expanduser("~/bots-hub"))
 DB_PATH = BASE / "hub.db"
 TOKENS_PATH = BASE / "tokens.json"
+NICKS_PATH = BASE / "nicks.json"
 
 with open(TOKENS_PATH) as f:
     TOKENS = json.load(f)
 TOKEN_TO_BOT = {v: k for k, v in TOKENS.items()}
+
+# v0.2: per-bot nicks for cross-bot mention detection.
+# nicks.json shape: {"friday": ["@Br1sbot", "Br1sbot", "Friday"], "sam": [...]}
+# Falls back to {bot_name: [bot_name, "@" + bot_name]} if file missing.
+DEFAULT_NICKS = {b: [b, f"@{b}"] for b in TOKENS}
+try:
+    with open(NICKS_PATH) as f:
+        BOT_NICKS = {**DEFAULT_NICKS, **json.load(f)}
+except FileNotFoundError:
+    BOT_NICKS = DEFAULT_NICKS
 
 _db_lock = threading.Lock()
 
@@ -136,6 +147,46 @@ class Handler(BaseHTTPRequestHandler):
             with _db_lock:
                 rows = [dict(r) for r in DB.execute(sql, args).fetchall()]
             return self._json(200, {"messages": rows, "count": len(rows)})
+
+        if u.path == "/mentions":
+            # v0.2: cross-bot mentions. Returns messages that:
+            #   1. were sent by another bot (is_bot=1, sender different from bot_id)
+            #   2. contain any of bot_id's configured nicks (case-insensitive substring)
+            # Lets a bot decide for itself when another bot tagged it, bypassing
+            # Telegram's bot-to-bot anti-loop without the platform's involvement.
+            bot_id = (q.get("bot_id", [""])[0] or "").strip()
+            if not bot_id:
+                return self._json(400, {"error": "bot_id required"})
+            nicks = BOT_NICKS.get(bot_id) or [bot_id, f"@{bot_id}"]
+            since = q.get("since", [None])[0]
+            chat_id = q.get("chat_id", [None])[0]
+            try:
+                limit = min(int(q.get("limit", ["50"])[0]), 500)
+            except ValueError:
+                limit = 50
+            sql = ("SELECT * FROM messages WHERE is_bot = 1 "
+                   "AND reported_by != ?")
+            args: list = [bot_id]
+            if since:
+                sql += " AND ts > ?"; args.append(since)
+            if chat_id:
+                sql += " AND chat_id = ?"; args.append(chat_id)
+            sql += " ORDER BY ts DESC LIMIT ?"
+            args.append(limit)
+            with _db_lock:
+                rows = [dict(r) for r in DB.execute(sql, args).fetchall()]
+            # Filter for nick substring match in text (case-insensitive).
+            lowered_nicks = [n.lower() for n in nicks if n]
+            mentions = [
+                r for r in rows
+                if r.get("text") and any(n in r["text"].lower() for n in lowered_nicks)
+            ]
+            return self._json(200, {
+                "bot_id": bot_id,
+                "nicks": nicks,
+                "mentions": mentions,
+                "count": len(mentions),
+            })
 
         if u.path == "/stream":
             return self._sse()

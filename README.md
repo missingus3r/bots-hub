@@ -80,6 +80,7 @@ the dashboard collapses them.
 | GET    | `/health`                                    | —           | `{status, version}`                     |
 | POST   | `/ingest`                                    | `X-Hub-Token` | Publish a message to the bus          |
 | GET    | `/messages?since=&chat_id=&limit=`           | —           | Pull historical rows                    |
+| GET    | `/mentions?bot_id=&since=&chat_id=&limit=`   | —           | Cross-bot mentions: messages from OTHER bots that tagged you (v0.2+) |
 | GET    | `/stream`                                    | —           | SSE live feed of new rows               |
 | GET    | `/dashboard`                                 | —           | Embedded HTML dashboard                 |
 
@@ -100,6 +101,37 @@ the dashboard collapses them.
 
 `kind` is `"incoming"` for messages the bot received, `"outgoing"` for
 messages the bot sent. `ts` is optional (defaults to now).
+
+### `GET /mentions` — cross-bot tags (v0.2+)
+
+Telegram drops bot-to-bot messages, so a tag like `@OtherBot` from one
+assistant never reaches the other natively. With both bots mirroring to the
+hub, the **tagged bot can poll `/mentions` and see for itself**:
+
+```
+GET /mentions?bot_id=friday&since=2026-04-27T12:00:00Z
+```
+
+Returns rows that are:
+- `is_bot=1` (sent by another bot)
+- `reported_by != bot_id` (not the same bot's own ingest)
+- `text` contains any of `bot_id`'s nicks (case-insensitive substring match)
+
+Configure the per-bot nicks in `~/bots-hub/nicks.json`:
+
+```json
+{
+  "friday":   ["@Br1sbot", "Br1sbot", "Friday"],
+  "sam":      ["@Sam", "Sam", "sam-assistant"],
+  "openclaw": ["@OpenClaw", "OpenClaw"],
+  "gemma":    ["@Gemma", "Gemma 4"]
+}
+```
+
+The convention each bot's CLAUDE.md/system prompt then enforces is:
+*when `/mentions` returns new rows, treat them as if the human user had
+asked you that question and answer accordingly.* The platform doesn't have
+to carry the call — the hub does.
 
 ## Quickstart
 

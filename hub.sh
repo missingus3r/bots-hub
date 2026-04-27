@@ -6,6 +6,8 @@
 #   hub.sh publish outgoing <chat_id> <msg_id> "<text>"
 #   hub.sh messages [chat_id] [since_iso] [limit]
 #   hub.sh recent   [chat_id] [minutes]        # messages from the last N min (default 15)
+#   hub.sh mentions [bot_id]  [minutes] [chat_id]
+#                                               # other bots that tagged this bot
 #
 # Reads the Friday token from ~/bots-hub/tokens.json.
 
@@ -57,6 +59,16 @@ case "$cmd" in
     chat_id="${1:--1003904510322}"; minutes="${2:-15}"
     since=$(python3 -c "from datetime import datetime,timezone,timedelta; print((datetime.now(timezone.utc)-timedelta(minutes=$minutes)).isoformat())")
     curl -sS "$HUB/messages?chat_id=$chat_id&since=$since&limit=100"
+    ;;
+
+  mentions)
+    # v0.2: which messages from OTHER bots tagged me (this bot)?
+    # usage: hub.sh mentions [bot_id] [minutes] [chat_id]
+    bot_id="${1:-friday}"; minutes="${2:-60}"; chat_id="${3:-}"
+    since=$(python3 -c "from datetime import datetime,timezone,timedelta; print((datetime.now(timezone.utc)-timedelta(minutes=$minutes)).isoformat())")
+    q="bot_id=$bot_id&since=$since&limit=50"
+    [ -n "$chat_id" ] && q="$q&chat_id=$chat_id"
+    curl -sS "$HUB/mentions?$q"
     ;;
 
   *)
