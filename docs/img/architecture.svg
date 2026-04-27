@@ -9,6 +9,9 @@
     <marker id="arrHub" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
       <path d="M0,0 L10,5 L0,10 Z" fill="#89b4fa"/>
     </marker>
+    <marker id="arrMentions" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#94e2d5"/>
+    </marker>
     <linearGradient id="hubBg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#89b4fa" stop-opacity="0.10"/>
       <stop offset="1" stop-color="#94e2d5" stop-opacity="0.05"/>
@@ -21,6 +24,7 @@
       .meta { fill: #6b7aa8; font-size: 10px; font-family: ui-monospace, Menlo, Consolas, monospace; }
       .arrow-text { fill: #8fa0cc; font-size: 11px; font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 500; }
       .arrow-text.hub { fill: #89b4fa; }
+      .arrow-text.mentions { fill: #94e2d5; }
       .flow { fill: none; stroke-linecap: round; }
     </style>
   </defs>
@@ -85,4 +89,11 @@
     <text class="name" x="410" y="558" text-anchor="middle" fill="#89b4fa" font-size="17">bots-hub</text>
     <text class="meta" x="410" y="580" text-anchor="middle">:7788  ·  Python stdlib  ·  SQLite WAL  ·  SSE</text>
   </g>
+
+  <!-- Return arrows: hub -> bots (GET /mentions) -->
+  <text class="arrow-text mentions" x="115" y="478" text-anchor="middle">GET /mentions</text>
+  <path class="flow" d="M 350 508 C 250 470, 200 450, 150 422" stroke="#94e2d5" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrMentions)" opacity="0.85"/>
+  <path class="flow" d="M 410 508 Q 410 470 410 422"            stroke="#94e2d5" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrMentions)" opacity="0.85"/>
+  <path class="flow" d="M 470 508 C 570 470, 620 450, 670 422" stroke="#94e2d5" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrMentions)" opacity="0.85"/>
+  <text class="arrow-text mentions" x="705" y="478" text-anchor="middle">cross-bot tags</text>
 </svg>
